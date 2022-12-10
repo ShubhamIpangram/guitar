@@ -104,6 +104,28 @@ const emailValidation = (data) => {
     }
 }
 
+const addDailyTips = (data) => {
+    var errors = {}
+    if (isEmpty(data.title)) {
+        errors.title = 'title is required';
+    }
+    return {
+        errors,
+        isValid: isEmpty(errors)
+    }
+}
+
+const addEnrollmentQuestion = (data) => {
+    var errors = {}
+    if (isEmpty(data.title)) {
+        errors.title = 'title is required';
+    }
+    return {
+        errors,
+        isValid: isEmpty(errors)
+    }
+}
+
 module.exports = {
     signInValidation,
     addCategoryValidation,
@@ -111,5 +133,7 @@ module.exports = {
     addlessonValidation,
     signUpValidation,
     resetPasswordValidation,
-    emailValidation
+    emailValidation,
+    addDailyTips,
+    addEnrollmentQuestion
 }

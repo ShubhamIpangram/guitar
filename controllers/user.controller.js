@@ -16,13 +16,13 @@ const { ObjectID } = require('mongodb');
 exports.addUser = async (req, res, next) => {
     try {
         const requestdata = {
-            $or: [{ mobile_no: req.body.mobile_no }, { email: req.body.email }],
+            $or: [{ mobile_no: req.body.mobile_no }, { email: req.body.email }, { uniqueUserName: req.body.uniqueUserName }],
         };
         const userEmail = await query.findOne(userColl, requestdata);
 
         console.log(userEmail)
         if (userEmail) {
-            const message = `user already registered with this mobile number or email`;
+            const message = `user already registered with this mobile number or email or uniqueUserName`;
             return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
         } else {
             const user = req.body;
@@ -159,18 +159,14 @@ exports.filterUser = async (req, res, next) => {
     try {
         const { pageNo, limit, searchText, filter } = req.query;
         const Limit = parseInt(limit)
-
         let search = "";
         let userFilter = ""
-
         if (searchText) {
             search = searchText
         }
-
         if (filter) {
             userFilter = filter
         }
-
         const result = userFilter == "" ?
             await query.findByPagination(userColl,
                 {

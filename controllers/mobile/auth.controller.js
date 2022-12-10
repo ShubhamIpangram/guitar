@@ -23,6 +23,7 @@ exports.signUp = async (req, res, next) => {
             const message = Object.values(errors);
             return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
         }
+
         const requestdata = {
             $or: [{ mobile_no: req.body.mobile_no }, { email: req.body.email }],
         };
@@ -46,7 +47,6 @@ exports.signUp = async (req, res, next) => {
                 return res.status(obj.code).json({
                     ...obj,
                 });
-
             } else {
                 const message = `Something went wrong, Please try again.`;
                 return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
@@ -331,6 +331,67 @@ exports.userProfileDetail = async (req, res, next) => {
         } else {
             const message = `user not found with this ID.`;
             return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
+        }
+    } catch (e) {
+        return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));
+    }
+}
+
+exports.socialAuth = async (req, res, next) => {
+    try {
+        const requestdata = { email: req.body.email };
+        const userEmail = await query.findOne(userColl, requestdata);
+        if (userEmail) {
+            const user = req.body;
+            const userUpdate = await query.findOneAndUpdate(
+                userColl,
+                { email: req.body.email },
+                { $set: user },
+                { returnOriginal: false }
+            );
+            if (userUpdate) {
+                const token = encrypt(jwt.sign(
+                    { _id: user._id, email: req.body.email },
+                    //privateKey, { algorithm: 'RS256' }
+                    process.env.JWT_SECRET
+                ));
+
+                const User = userUpdate.value;
+                const obj = resPattern.successPattern(
+                    httpStatus.OK,
+                    { User, token },
+                    `success`
+                );
+                return res.status(obj.code).json({
+                    ...obj,
+                });
+            } else {
+                const message = `Something went wrong, Please try again.`;
+                return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
+            }
+        } else {
+            const user = req.body;
+            const insertdata = await query.insert(userColl, user);
+            if (insertdata.ops.length > 0) {
+                const token = encrypt(jwt.sign(
+                    { _id: user._id, email: req.body.email },
+                    //privateKey, { algorithm: 'RS256' }
+                    process.env.JWT_SECRET
+                ));
+
+                const User = insertdata.ops[0];
+                const obj = resPattern.successPattern(
+                    httpStatus.OK,
+                    { User, token },
+                    `success`
+                );
+                return res.status(obj.code).json({
+                    ...obj,
+                });
+            } else {
+                const message = `Something went wrong, Please try again.`;
+                return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
+            }
         }
     } catch (e) {
         return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));

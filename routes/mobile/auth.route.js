@@ -22,4 +22,7 @@ router.route('/updateUserProfile/:id')
 
 router.route('/ProfileDetail/:id')
     .get(authCtrl.userProfileDetail);
+
+    router.route('/socialAuth')
+    .post(authCtrl.socialAuth);
 module.exports = router;

@@ -1,33 +1,23 @@
 const db = require("../index");
-const categoryColl = db.collection("category");
+const messageColl = db.collection("welcomeMessage");
 const APIError = require("../helpers/APIError");
 const resPattern = require("../helpers/resPattern");
 const httpStatus = require("http-status");
 const query = require("../query/query");
-const { addCategoryValidation } = require('../helpers/validation');
+const { addEnrollmentQuestion } = require('../helpers/validation');
 const { ObjectId } = require('mongodb');
 
 
-exports.addCategory = async (req, res, next) => {
+exports.addwelcomeMessage = async (req, res, next) => {
     try {
-        const { errors, isValid } = await addCategoryValidation(req.body);
+        const { errors, isValid } = await addEnrollmentQuestion(req.body);
         if (!isValid) {
             const message = Object.values(errors);
             return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
         }
-        // const requestdata = {
-        //     categoryType: req.body.categoryType
-        // };
-
-        // const catType = await query.findOne(categoryColl, requestdata);
-        // if (catType) {
-        //     const message = `You have already exists with this categoryType`;
-        //     return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
-        // } else {
         const category = req.body;
-        category.hideCategory = false;
-        const insertdata = await query.insert(categoryColl, category);
-        console.log(insertdata)
+        category.hideWelcomeMessage = false;
+        const insertdata = await query.insert(messageColl, category);
         if (insertdata.ops.length > 0) {
             const obj = resPattern.successPattern(
                 httpStatus.OK,
@@ -51,7 +41,7 @@ exports.addCategory = async (req, res, next) => {
 };
 
 
-exports.categorylist = async (req, res, next) => {
+exports.welcomeMessageList = async (req, res, next) => {
 
     try {
         const { pageNo, limit, searchText } = req.query;
@@ -61,8 +51,7 @@ exports.categorylist = async (req, res, next) => {
         if (searchText) {
             search = searchText
         }
-
-        const result = await query.findByPagination(categoryColl,
+        const result = await query.findByPagination(messageColl,
             {
                 title: {
                     $regex: ".*" + search + ".*",
@@ -81,18 +70,18 @@ exports.categorylist = async (req, res, next) => {
     }
 }
 
-exports.deleteCategory = async (req, res, next) => {
+exports.deleteWelcomeMessage = async (req, res, next) => {
     try {
         const id = ObjectId(req.params.id);
-        const result1 = await query.findOne(categoryColl, { _id: id });
+        const result1 = await query.findOne(messageColl, { _id: id });
         if (result1) {
-            const result = await query.deleteOne(categoryColl, { _id: id });
-            const obj = resPattern.successPattern(httpStatus.OK, { message: "Delete category successfully...!" }, `success`);
+            const result = await query.deleteOne(messageColl, { _id: id });
+            const obj = resPattern.successPattern(httpStatus.OK, { message: "Delete Welcome Messsage successfully...!" }, `success`);
             return res.status(obj.code).json({
                 ...obj,
             });
         } else {
-            const message = `category not found with this ID.`;
+            const message = `Welcome Message not found with this ID.`;
             return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
         }
     } catch (e) {
@@ -100,17 +89,17 @@ exports.deleteCategory = async (req, res, next) => {
     }
 }
 
-exports.detailCategory = async (req, res, next) => {
+exports.welcomeMessageDetails = async (req, res, next) => {
     try {
         const id = ObjectId(req.params.id);
-        const result = await query.findOne(categoryColl, { _id: id });
+        const result = await query.findOne(messageColl, { _id: id });
         if (result) {
             const obj = resPattern.successPattern(httpStatus.OK, result, `success`);
             return res.status(obj.code).json({
                 ...obj,
             });
         } else {
-            const message = `category not found with this ID.`;
+            const message = `welcome message not found with this ID.`;
             return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
         }
     } catch (e) {
@@ -118,11 +107,11 @@ exports.detailCategory = async (req, res, next) => {
     }
 }
 
-exports.updateCategory = async (req, res, next) => {
+exports.updateWelcomeMessage = async (req, res, next) => {
     try {
         const id = ObjectId(req.params.id);
         const bodyData = req.body;
-        const result = await query.findOneAndUpdate(categoryColl,
+        const result = await query.findOneAndUpdate(messageColl,
             { _id: id },
             { $set: bodyData },
             { returnOriginal: false }
@@ -136,13 +125,13 @@ exports.updateCategory = async (req, res, next) => {
     }
 }
 
-exports.hideCategory = async (req, res, next) => {
+exports.hideWelcomeMessage = async (req, res, next) => {
     try {
         const id = ObjectId(req.params.id);
-        const { hideCategory } = req.body;
-        const result = await query.findOneAndUpdate(categoryColl,
+        const { hideWelcomeMessage } = req.body;
+        const result = await query.findOneAndUpdate(messageColl,
             { _id: id },
-            { $set: { hideCategory: hideCategory } },
+            { $set: { hideWelcomeMessage: hideWelcomeMessage } },
             { returnOriginal: false }
         );
         const obj = resPattern.successPattern(httpStatus.OK, result.value, `success`);
@@ -151,49 +140,5 @@ exports.hideCategory = async (req, res, next) => {
         });
     } catch (e) {
         return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));
-    }
-}
-
-exports.filterCategory = async (req, res, next) => {
-    try {
-        const { pageNo, limit, searchText, filter } = req.query;
-        const Limit = parseInt(limit)
-
-        let search = "";
-        let categoryFilter = ""
-
-        if (searchText) {
-            search = searchText
-        }
-
-        if (filter) {
-            categoryFilter = filter
-        }
-
-        const result = categoryFilter == "" ?
-            await query.findByPagination(categoryColl,
-                {
-                    title: {
-                        $regex: ".*" + search + ".*",
-                        $options: "i",
-                    }
-                },
-                {}, pageNo, Limit, { "createdAt": -1 }) : await query.findByPagination(categoryColl,
-                    {
-                        categoryType: categoryFilter,
-                        title: {
-                            $regex: ".*" + search + ".*",
-                            $options: "i",
-                        }
-                    },
-                    {}, pageNo, Limit, { "createdAt": -1 })
-
-        const obj = resPattern.successPattern(httpStatus.OK, { result }, `success`);
-        return res.status(obj.code).json({
-            ...obj,
-        });
-    } catch (e) {
-        console.log('error---', e)
-        return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true))
     }
 }

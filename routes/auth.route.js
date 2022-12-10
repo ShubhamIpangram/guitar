@@ -19,4 +19,6 @@ router.route('/resetpassword')
 router.route('/adminUpdateprofile/:id')
     .post(authCtrl.updateProfile);
 
+
+
 module.exports = router;

@@ -39,8 +39,10 @@ db.connection().then((database) => {
     app.use('/api/lesson', require('./routes/lesson.route'));
     app.use('/api/file', require('./routes/file.route'));
     app.use('/api/adminUser', require('./routes/user.route'));
+    app.use('/api/dailyTips', require('./routes/dailyTips.route'));
+    app.use('/api/enrollment', require('./routes/enrollment.route'));
+    app.use('/api/welcomeMessage', require('./routes/welcomeMessage.route'));
     app.use('/api/user', require('./routes/mobile/auth.route'));
-    
 
     app.use((err, req, res, next) => {
         if (err instanceof expressValidation.ValidationError) {

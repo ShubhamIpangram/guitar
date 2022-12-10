@@ -15,176 +15,176 @@ const { ObjectID } = require("mongodb");
 
 
 exports.fileConvert = async (req, res, next) => {
-    try {
-        let middleA = 440;
-        let semitone = 69;
-        let noteStrings = [
-            "C",
-            "C♯",
-            "D",
-            "D♯",
-            "E",
-            "F",
-            "F♯",
-            "G",
-            "G♯",
-            "A",
-            "A♯",
-            "B",
-        ];
-        const SampleRate = 44100
-        const detectPitch = new Pitchfinder.YIN({ sampleRate: SampleRate });
-        const buffer = fs.readFileSync(req.file.path);
-        const decoded = WavDecoder.decode.sync(buffer);
-        const float32Array = decoded.channelData[0];
+  try {
+    let middleA = 440;
+    let semitone = 69;
+    let noteStrings = [
+      "C",
+      "C♯",
+      "D",
+      "D♯",
+      "E",
+      "F",
+      "F♯",
+      "G",
+      "G♯",
+      "A",
+      "A♯",
+      "B",
+    ];
+    const SampleRate = 44100
+    const detectPitch = new Pitchfinder.YIN({ sampleRate: SampleRate });
+    const buffer = fs.readFileSync(req.file.path);
+    const decoded = WavDecoder.decode.sync(buffer);
+    const float32Array = decoded.channelData[0];
 
-        const detectors = [detectPitch, Pitchfinder.AMDF()];
-        const moreAccurateFrequencies = Pitchfinder.frequencies(
-            detectors,
-            float32Array,
-            {
-                tempo: 130,
-                quantization: 4,
-            }
-        );
+    const detectors = [detectPitch, Pitchfinder.AMDF()];
+    const moreAccurateFrequencies = Pitchfinder.frequencies(
+      detectors,
+      float32Array,
+      {
+        tempo: 130,
+        quantization: 4,
+      }
+    );
 
-        var arr2 = moreAccurateFrequencies.filter(element => element < 910 && element > 0).map((frequency)=>(
-           {
-               name: noteStrings[(Math.round(12 * (Math.log(frequency / middleA) / Math.log(2)))+semitone) % 12],
-               octave : parseInt(Math.round(12 * (Math.log(frequency / middleA) / Math.log(2)))/12)-1,
-               frequency: frequency,
-            }))
+    var arr2 = moreAccurateFrequencies.filter(element => element < 910 && element > 0).map((frequency) => (
+      {
+        name: noteStrings[(Math.round(12 * (Math.log(frequency / middleA) / Math.log(2))) + semitone) % 12],
+        octave: parseInt(Math.round(12 * (Math.log(frequency / middleA) / Math.log(2))) / 12) - 1,
+        frequency: frequency,
+      }))
 
-        let object = {
-          frequencies : arr2,
-          name : req.file.originalname,
-        }
-
-        const insertdata = await query.insert(decodesongColl, object);
-          
-        const obj = resPattern.successPattern(200, { result: object }, `success`);
-        return res.status(obj.code).json({
-            ...obj
-        });
-        
-    } catch (e) {
-      return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));
-  
+    let object = {
+      frequencies: arr2,
+      name: req.file.originalname,
     }
-  };
 
+    const insertdata = await query.insert(decodesongColl, object);
 
-  exports.getDecodedSongs = async(req, res, next)=>{
-      try{
-        const songslist = await query.find(decodesongColl, {}, "")
+    const obj = resPattern.successPattern(200, { result: object }, `success`);
+    return res.status(obj.code).json({
+      ...obj
+    });
 
-        if (songslist) {
-            let obj = resPattern.successPattern(
-              httpStatus.OK,
-              { songslist },
-              "success"
-            );
-            return res.status(obj.code).json(obj);
-          } else {
-            const message = `Songs not found `;
-            return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
-          }
-      }catch(e){ 
-        return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));  
-      }
+  } catch (e) {
+    return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));
+
   }
+};
 
-  exports.getSongById = async(req, res, next)=>{
-    try {
-        console.log("reqqqq", req.params.id)
-        // const song = await query.findOne({ _id: ObjectID(req.params.id) })
-        const song = await query.findOne(decodesongColl, { _id: ObjectID(req.params.id) })
-        if (song) {
-          let obj = resPattern.successPattern(httpStatus.OK, { song }, "success");
-          return res.status(obj.code).json(obj);
-        } else {
-          const message = `Subject not found with id: '${id}.`;
-          return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
-        }
-      } catch (e) {
-        return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));
-      }
-  }
 
-  exports.deleteSong = async(req, res, next) =>{
-    try{
-      console.log('reqq', req.params.id)
-      
-      let subjectId = ObjectID(req.params.id);
+exports.getDecodedSongs = async (req, res, next) => {
+  try {
+    const songslist = await query.find(decodesongColl, {}, "")
 
-      const song = await query.deleteOne(decodesongColl, {
-        _id: subjectId,
-      });
-    
-      if (song.deletedCount !== 0) {
-        let obj = resPattern.successMessge(httpStatus.OK, "Delete successfully");
-        return res.status(obj.code).json(obj);
-      } else {
-        const message = `Song not found with id: '${req.params.id}.`;
-        return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
-      }
-
-    }catch(e){
-      return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));
+    if (songslist) {
+      let obj = resPattern.successPattern(
+        httpStatus.OK,
+        { songslist },
+        "success"
+      );
+      return res.status(obj.code).json(obj);
+    } else {
+      const message = `Songs not found `;
+      return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
     }
+  } catch (e) {
+    return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));
   }
+}
 
-  exports.updateSong=async(req, res, next)=>{
-    try {
+exports.getSongById = async (req, res, next) => {
+  try {
+    console.log("reqqqq", req.params.id)
+    // const song = await query.findOne({ _id: ObjectID(req.params.id) })
+    const song = await query.findOne(decodesongColl, { _id: ObjectID(req.params.id) })
+    if (song) {
+      let obj = resPattern.successPattern(httpStatus.OK, { song }, "success");
+      return res.status(obj.code).json(obj);
+    } else {
+      const message = `Subject not found with id: '${id}.`;
+      return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
+    }
+  } catch (e) {
+    return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));
+  }
+}
+
+exports.deleteSong = async (req, res, next) => {
+  try {
+    console.log('reqq', req.params.id)
+
+    let subjectId = ObjectID(req.params.id);
+
+    const song = await query.deleteOne(decodesongColl, {
+      _id: subjectId,
+    });
+
+    if (song.deletedCount !== 0) {
+      let obj = resPattern.successMessge(httpStatus.OK, "Delete successfully");
+      return res.status(obj.code).json(obj);
+    } else {
+      const message = `Song not found with id: '${req.params.id}.`;
+      return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
+    }
+
+  } catch (e) {
+    return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));
+  }
+}
+
+exports.updateSong = async (req, res, next) => {
+  try {
     let subjectId = ObjectID(req.params.id);
     let subjectData = req.file;
     console.log("fileee", subjectData)
 
     let middleA = 440;
-        let semitone = 69;
-        let noteStrings = [
-            "C",
-            "C♯",
-            "D",
-            "D♯",
-            "E",
-            "F",
-            "F♯",
-            "G",
-            "G♯",
-            "A",
-            "A♯",
-            "B",
-        ];
-        const SampleRate = 44100
-        const detectPitch = new Pitchfinder.YIN({ sampleRate: SampleRate });
-        const buffer = fs.readFileSync(req.file.path);
-        const decoded = WavDecoder.decode.sync(buffer);
-        const float32Array = decoded.channelData[0];
+    let semitone = 69;
+    let noteStrings = [
+      "C",
+      "C♯",
+      "D",
+      "D♯",
+      "E",
+      "F",
+      "F♯",
+      "G",
+      "G♯",
+      "A",
+      "A♯",
+      "B",
+    ];
+    const SampleRate = 44100
+    const detectPitch = new Pitchfinder.YIN({ sampleRate: SampleRate });
+    const buffer = fs.readFileSync(req.file.path);
+    const decoded = WavDecoder.decode.sync(buffer);
+    const float32Array = decoded.channelData[0];
 
-        const detectors = [detectPitch, Pitchfinder.AMDF()];
-        const moreAccurateFrequencies = Pitchfinder.frequencies(
-            detectors,
-            float32Array,
-            {
-                tempo: 130,
-                quantization: 4,
-            }
-        );
+    const detectors = [detectPitch, Pitchfinder.AMDF()];
+    const moreAccurateFrequencies = Pitchfinder.frequencies(
+      detectors,
+      float32Array,
+      {
+        tempo: 130,
+        quantization: 4,
+      }
+    );
 
-        var arr2 = moreAccurateFrequencies.filter(element => element < 910 && element > 0).map((frequency)=>(
-           {
-               name: noteStrings[(Math.round(12 * (Math.log(frequency / middleA) / Math.log(2)))+semitone) % 12],
-               octave : parseInt(Math.round(12 * (Math.log(frequency / middleA) / Math.log(2)))/12)-1,
-               frequency: frequency,
-            }))
+    var arr2 = moreAccurateFrequencies.filter(element => element < 910 && element > 0).map((frequency) => (
+      {
+        name: noteStrings[(Math.round(12 * (Math.log(frequency / middleA) / Math.log(2))) + semitone) % 12],
+        octave: parseInt(Math.round(12 * (Math.log(frequency / middleA) / Math.log(2))) / 12) - 1,
+        frequency: frequency,
+      }))
 
-        let objectData = {
-          frequencies : arr2,
-          name : req.file.originalname,
-        }
+    let objectData = {
+      frequencies: arr2,
+      name: req.file.originalname,
+    }
 
-        objectData.updatedAt = moment().utc().format();
+    objectData.updatedAt = moment().utc().format();
     const subjectUpdate = await query.findOneAndUpdate(
       decodesongColl,
       { _id: subjectId },
@@ -206,4 +206,4 @@ exports.fileConvert = async (req, res, next) => {
   } catch (e) {
     return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));
   }
-  }
+}
