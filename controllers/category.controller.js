@@ -90,7 +90,7 @@ exports.categorylist = async (req, res, next) => {
                     from: 'categoryType',
                     localField: 'categoryType',
                     foreignField: '_id',
-                    as: 'categoryTypes'
+                    as: 'categoryType'
                 }
             },
             { $skip: parseInt(pageNo) },
@@ -100,10 +100,10 @@ exports.categorylist = async (req, res, next) => {
                     from: 'level',
                     localField: 'level',
                     foreignField: '_id',
-                    as: 'levels'
+                    as: 'level'
                 }
             },
-            { $project: { categoryType: 0, level: 0, levels: { hideLevel: 0, categoryId: 0, createdAt: 0 } } },
+            { $project: {  level: { hideLevel: 0, categoryId: 0, createdAt: 0 } } },
         ]).toArray();
 
         // const result = await query.findByPagination(categoryColl,
