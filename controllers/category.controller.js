@@ -26,22 +26,21 @@ exports.categoryTypeList = async (req, res, next) => {
 
 exports.addCategory = async (req, res, next) => {
     try {
+
         const { errors, isValid } = await addCategoryValidation(req.body);
         if (!isValid) {
             const message = Object.values(errors);
             return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
         }
-        // const requestdata = {
-        //     categoryType: req.body.categoryType
-        // };
 
-        // const catType = await query.findOne(categoryColl, requestdata);
-        // if (catType) {
-        //     const message = `You have already exists with this categoryType`;
-        //     return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
-        // } else {
+        const Level = req.body.level;
+        const levelid = Level.map((e) => {
+            return ObjectId(e);
+        })
         const category = req.body;
         category.hideCategory = false;
+        category.categoryType = ObjectId(req.body.categoryType);
+        category.level = levelid;
         const insertdata = await query.insert(categoryColl, category);
         console.log(insertdata)
         if (insertdata.ops.length > 0) {
@@ -58,8 +57,6 @@ exports.addCategory = async (req, res, next) => {
             const message = `Something went wrong, Please try again.`;
             return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
         }
-        //}
-
     } catch (e) {
         console.log("e..", e);
         return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));
@@ -78,14 +75,52 @@ exports.categorylist = async (req, res, next) => {
             search = searchText
         }
 
-        const result = await query.findByPagination(categoryColl,
+
+        const result = await categoryColl.aggregate([
             {
-                title: {
-                    $regex: ".*" + search + ".*",
-                    $options: "i",
+                $match: {
+                    title: {
+                        $regex: ".*" + search + ".*",
+                        $options: "i",
+                    }
                 }
             },
-            {}, pageNo, Limit, { "createdAt": -1 })
+            {
+                $lookup: {
+                    from: 'categoryType',
+                    localField: 'categoryType',
+                    foreignField: '_id',
+                    as: 'categoryTypes'
+                }
+            },
+            { $skip: parseInt(pageNo) },
+            { $limit: parseInt(Limit) },
+            {
+                $lookup: {
+                    from: 'level',
+                    localField: 'level',
+                    foreignField: '_id',
+                    as: 'levels'
+                }
+            },
+            { $project: { categoryType: 0, level: 0, levels: { hideLevel: 0, categoryId: 0, createdAt: 0 } } },
+        ]).toArray();
+
+        // const result = await query.findByPagination(categoryColl,
+        //     {
+        //         title: {
+        //             $regex: ".*" + search + ".*",
+        //             $options: "i",
+        //         }
+        //     },
+        //     {
+        //         $lookup: {
+        //             from: 'categoryType',
+        //             localField: 'categoryType',
+        //             foreignField: '_id',
+        //             as: 'Plan'
+        //         }
+        //     }, pageNo, Limit, { "createdAt": -1 })
 
         const obj = resPattern.successPattern(httpStatus.OK, { result }, `success`);
         return res.status(obj.code).json({
@@ -204,6 +239,22 @@ exports.filterCategory = async (req, res, next) => {
                     },
                     {}, pageNo, Limit, { "createdAt": -1 })
 
+        const obj = resPattern.successPattern(httpStatus.OK, { result }, `success`);
+        return res.status(obj.code).json({
+            ...obj,
+        });
+    } catch (e) {
+        console.log('error---', e)
+        return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true))
+    }
+}
+
+
+
+exports.typeList = async (req, res, next) => {
+    const id = ObjectId(req.params.id);
+    try {
+        const result = await query.find(categoryColl, { categoryType: id })
         const obj = resPattern.successPattern(httpStatus.OK, { result }, `success`);
         return res.status(obj.code).json({
             ...obj,

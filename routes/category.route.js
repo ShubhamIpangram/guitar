@@ -12,5 +12,6 @@ router.route('/categoryDetails/:id').get(categoryCtrl.detailCategory);
 router.route('/update-category/:id').put(categoryCtrl.updateCategory)
 router.route('/hide-category/:id').put(categoryCtrl.hideCategory)
 router.route('/filter-Category').get(categoryCtrl.filterCategory);
+router.route('/typeList/:id').get(categoryCtrl.typeList);
 
 module.exports = router;
