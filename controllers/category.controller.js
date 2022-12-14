@@ -1,5 +1,6 @@
 const db = require("../index");
 const categoryColl = db.collection("category");
+const categoryTypeColl = db.collection("categoryType");
 const APIError = require("../helpers/APIError");
 const resPattern = require("../helpers/resPattern");
 const httpStatus = require("http-status");
@@ -7,6 +8,21 @@ const query = require("../query/query");
 const { addCategoryValidation } = require('../helpers/validation');
 const { ObjectId } = require('mongodb');
 
+
+
+exports.categoryTypeList = async (req, res, next) => {
+
+    try {
+        const result = await query.find(categoryTypeColl, {})
+        const obj = resPattern.successPattern(httpStatus.OK, { result }, `success`);
+        return res.status(obj.code).json({
+            ...obj,
+        });
+    } catch (e) {
+        console.log('error---', e)
+        return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true))
+    }
+}
 
 exports.addCategory = async (req, res, next) => {
     try {

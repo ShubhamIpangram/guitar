@@ -12,8 +12,8 @@ const { signInValidation } = require('../helpers/validation');
 const { generatePassword, encrypt, generateOTP, sendEmail } = require("../helpers/commonfile");
 const { ObjectID } = require('mongodb');
 
-const privateKey = fs.readFileSync('/etc/private.key',
-  { encoding: 'utf8', flag: 'r' });
+// const privateKey = fs.readFileSync('/etc/private.key',
+//   { encoding: 'utf8', flag: 'r' });
 
 exports.adminlogin = async (req, res, next) => {
   try {

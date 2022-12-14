@@ -10,8 +10,9 @@ const { decrypt } = require('../helpers/commonfile');
 
 dotenv.config();
 const fs = require('fs');
-const publicKey = fs.readFileSync("/etc/public.key",
-    { encoding: 'utf8', flag: 'r' });
+
+// const publicKey = fs.readFileSync("/etc/public.key",
+//     { encoding: 'utf8', flag: 'r' });
 
 
 // verify JWT token and protect routes.
@@ -36,7 +37,9 @@ const protect = async (req, res, next) => {
 
     try {
         // Verify token
-        const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] });
+        const decoded = jwt.verify(token,
+           //  publicKey, { algorithms: ['RS256']}
+           );
 
         // const user = await User.findById(decoded.id);
         const decodeId = { _id: ObjectID(decoded._id) }

@@ -6,6 +6,9 @@ dotenv.config();
 const CryptoJS = require("crypto-js");
 const multer = require("multer");
 const nodeMailer = require("nodemailer");
+const admin = require("firebase-admin");
+let serviceAccount = require("../config/guitar-5c757-firebase-adminsdk-ywtae-fff2102d7a.json");
+
 
 // bcrypt password
 const validPassword = (dbPassword, passwordToMatch) => {
@@ -95,17 +98,26 @@ const resetPasswordValidation = (data) => {
   var errors = {}
 
   if (isEmpty(data.otp)) {
-      errors.otp = 'otp is required'; 
-  }else{
-      if(data.otp.length !== 6){
-          errors.otp = 'otp length 6 digit required'; 
-      }
+    errors.otp = 'otp is required';
+  } else {
+    if (data.otp.length !== 6) {
+      errors.otp = 'otp length 6 digit required';
+    }
   }
   return {
-      errors,
-      isValid : isEmpty(errors)
+    errors,
+    isValid: isEmpty(errors)
   }
 }
+
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "mailto:firebase-adminsdk-c6j06@amap-7235c.iam.gserviceaccount.com",
+});
+
+
+
 
 module.exports = {
   validPassword,
@@ -117,5 +129,6 @@ module.exports = {
   decrypt,
   upload,
   sendEmail,
-  resetPasswordValidation
+  resetPasswordValidation,
+  admin
 };
