@@ -10,15 +10,9 @@ const { addlevelValidation } = require('../helpers/validation');
 
 exports.addLevel = async (req, res, next) => {
     try {
-
-        const { errors, isValid } = await addlevelValidation(req.body);
-        if (!isValid) {
-            const message = Object.values(errors);
-            return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
-        }
         const level = req.body;
         level.hideLevel = false;
-        level.categoryId = ObjectId(req.body.categoryId)
+       // if level.categoryId = ObjectId(req.body.categoryId)
         const insertdata = await query.insert(levelColl, level);
         if (insertdata.ops.length > 0) {
             const obj = resPattern.successPattern(
