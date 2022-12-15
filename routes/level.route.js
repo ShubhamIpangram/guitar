@@ -8,5 +8,6 @@ router.route('/deleteLevel/:id').delete(levelCtrl.deleteLevel);
 router.route('/levelDetails/:id').get(levelCtrl.detailLevel);
 router.route('/update-level/:id').put(levelCtrl.updateLevel);
 router.route('/hide-level/:id').put(levelCtrl.hideLevel)
+router.route('/level_listWithTitle').get(levelCtrl.level_listWithTitle)
 
 module.exports = router;

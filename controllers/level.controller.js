@@ -45,8 +45,6 @@ exports.levellist = async (req, res, next) => {
         if (searchText) {
             search = searchText
         }
-
-
         const result = await levelColl.aggregate([
             {
                 $match: {
@@ -156,6 +154,23 @@ exports.hideLevel = async (req, res, next) => {
             { returnOriginal: false }
         );
         const obj = resPattern.successPattern(httpStatus.OK, result.value, `success`);
+        return res.status(obj.code).json({
+            ...obj,
+        });
+    } catch (e) {
+        return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));
+    }
+}
+
+
+
+exports.level_listWithTitle = async (req, res, next) => {
+    try {
+        const result = await levelColl.aggregate([
+            { $project: { title: 1} },
+
+        ]).toArray();
+        const obj = resPattern.successPattern(httpStatus.OK, result, `success`);
         return res.status(obj.code).json({
             ...obj,
         });
