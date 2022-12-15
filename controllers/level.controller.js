@@ -129,6 +129,9 @@ exports.updateLevel = async (req, res, next) => {
     try {
         const id = ObjectId(req.params.id);
         const bodyData = req.body;
+        if (req.body.categoryType) {
+            bodyData.categoryType = ObjectId(req.body.categoryType)
+        }
         const result = await query.findOneAndUpdate(levelColl,
             { _id: id },
             { $set: bodyData },
