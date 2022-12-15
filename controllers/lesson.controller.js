@@ -1,5 +1,6 @@
 const db = require("../index");
 const lessonColl = db.collection("lesson");
+const lessonTypeColl = db.collection("lessonType");
 const APIError = require("../helpers/APIError");
 const resPattern = require("../helpers/resPattern");
 const httpStatus = require("http-status");
@@ -7,6 +8,23 @@ const query = require("../query/query");
 const { ObjectId } = require('mongodb');
 const { addlessonValidation } = require('../helpers/validation');
 
+
+
+
+
+
+exports.lessonTypeList = async (req, res, next) => {
+    try {
+        const result = await query.find(lessonTypeColl, {})
+        const obj = resPattern.successPattern(httpStatus.OK, { result }, `success`);
+        return res.status(obj.code).json({
+            ...obj,
+        });
+    } catch (e) {
+        console.log('error---', e)
+        return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true))
+    }
+}
 
 exports.addLesson = async (req, res, next) => {
     try {

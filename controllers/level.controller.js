@@ -10,9 +10,10 @@ const { addlevelValidation } = require('../helpers/validation');
 
 exports.addLevel = async (req, res, next) => {
     try {
+
         const level = req.body;
         level.hideLevel = false;
-       // if level.categoryId = ObjectId(req.body.categoryId)
+        level.categoryType = ObjectId(req.body.categoryType)
         const insertdata = await query.insert(levelColl, level);
         if (insertdata.ops.length > 0) {
             const obj = resPattern.successPattern(
@@ -45,14 +46,37 @@ exports.levellist = async (req, res, next) => {
             search = searchText
         }
 
-        const result = await query.findByPagination(levelColl,
+
+        const result = await levelColl.aggregate([
             {
-                title: {
-                    $regex: ".*" + search + ".*",
-                    $options: "i",
+                $match: {
+                    title: {
+                        $regex: ".*" + search + ".*",
+                        $options: "i",
+                    }
                 }
             },
-            {}, pageNo, Limit, { "createdAt": -1 })
+            {
+                $lookup: {
+                    from: 'categoryType',
+                    localField: 'categoryType',
+                    foreignField: '_id',
+                    as: 'categoryType'
+                }
+            },
+            { $skip: parseInt(pageNo) },
+            { $limit: parseInt(Limit) },
+
+        ]).toArray();
+
+        // const result = await query.findByPagination(levelColl,
+        //     {
+        //         title: {
+        //             $regex: ".*" + search + ".*",
+        //             $options: "i",
+        //         }
+        //     },
+        //     {}, pageNo, Limit, { "createdAt": -1 })
 
         const obj = resPattern.successPattern(httpStatus.OK, { result }, `success`);
         return res.status(obj.code).json({

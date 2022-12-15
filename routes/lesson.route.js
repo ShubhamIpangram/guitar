@@ -1,6 +1,9 @@
 const router = require('express').Router();
 const lessonCtrl = require('../controllers/lesson.controller');
 
+
+router.route('/lessonType_list')
+    .get(lessonCtrl.lessonTypeList);
 router.route('/add-lession')
     .post(lessonCtrl.addLesson);
 router.route('/lesson_list').get(lessonCtrl.lessonlist);

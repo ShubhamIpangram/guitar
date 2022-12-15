@@ -103,7 +103,7 @@ exports.categorylist = async (req, res, next) => {
                     as: 'level'
                 }
             },
-            { $project: {  level: { hideLevel: 0, categoryId: 0, createdAt: 0 } } },
+            { $project: { level: { hideLevel: 0, categoryId: 0, createdAt: 0 } } },
         ]).toArray();
 
         // const result = await query.findByPagination(categoryColl,
@@ -254,7 +254,16 @@ exports.filterCategory = async (req, res, next) => {
 exports.typeList = async (req, res, next) => {
     const id = ObjectId(req.params.id);
     try {
-        const result = await query.find(categoryColl, { categoryType: id })
+        //const result = await query.find(categoryColl, { categoryType: id })
+
+        const result = await categoryColl.aggregate([
+            {
+                $match: {
+                    categoryType: id
+                }
+            },
+            { $project: { title: 1, createdAt: 1 } },
+        ]).toArray();
         const obj = resPattern.successPattern(httpStatus.OK, { result }, `success`);
         return res.status(obj.code).json({
             ...obj,
