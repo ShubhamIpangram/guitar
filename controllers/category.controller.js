@@ -176,6 +176,14 @@ exports.updateCategory = async (req, res, next) => {
         if (req.body.categoryType) {
             bodyData.categoryType = ObjectId(req.body.categoryType)
         }
+
+        if (req.body.level) {
+            const Level = req.body.level;
+            const levelid = Level.map((e) => {
+                return ObjectId(e);
+            })
+            bodyData.level = levelid;
+        }
         const result = await query.findOneAndUpdate(categoryColl,
             { _id: id },
             { $set: bodyData },
