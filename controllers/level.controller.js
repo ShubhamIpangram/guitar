@@ -45,6 +45,9 @@ exports.levellist = async (req, res, next) => {
         if (searchText) {
             search = searchText
         }
+
+
+        const  totalCount = await query.count(levelColl, {})
         const result = await levelColl.aggregate([
             {
                 $match: {
@@ -64,8 +67,8 @@ exports.levellist = async (req, res, next) => {
             },
             { $skip: parseInt(pageNo) },
             { $limit: parseInt(Limit) },
-
         ]).toArray();
+
 
         // const result = await query.findByPagination(levelColl,
         //     {
@@ -76,7 +79,7 @@ exports.levellist = async (req, res, next) => {
         //     },
         //     {}, pageNo, Limit, { "createdAt": -1 })
 
-        const obj = resPattern.successPattern(httpStatus.OK, { result }, `success`);
+        const obj = resPattern.successPattern(httpStatus.OK, { totalCount,result }, `success`);
         return res.status(obj.code).json({
             ...obj,
         });
@@ -167,7 +170,7 @@ exports.hideLevel = async (req, res, next) => {
 exports.level_listWithTitle = async (req, res, next) => {
     try {
         const result = await levelColl.aggregate([
-            { $project: { title: 1} },
+            { $project: { title: 1 } },
 
         ]).toArray();
         const obj = resPattern.successPattern(httpStatus.OK, result, `success`);

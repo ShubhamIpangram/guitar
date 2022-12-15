@@ -75,7 +75,7 @@ exports.categorylist = async (req, res, next) => {
             search = searchText
         }
 
-
+        const  totalCount = await query.count(categoryColl, {})
         const result = await categoryColl.aggregate([
             {
                 $match: {
@@ -122,7 +122,7 @@ exports.categorylist = async (req, res, next) => {
         //         }
         //     }, pageNo, Limit, { "createdAt": -1 })
 
-        const obj = resPattern.successPattern(httpStatus.OK, { result }, `success`);
+        const obj = resPattern.successPattern(httpStatus.OK, {totalCount, result }, `success`);
         return res.status(obj.code).json({
             ...obj,
         });
