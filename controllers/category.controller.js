@@ -75,7 +75,7 @@ exports.categorylist = async (req, res, next) => {
             search = searchText
         }
 
-        const  totalCount = await query.count(categoryColl, {})
+        const totalCount = await query.count(categoryColl, {})
         const result = await categoryColl.aggregate([
             {
                 $match: {
@@ -93,7 +93,7 @@ exports.categorylist = async (req, res, next) => {
                     as: 'categoryType'
                 }
             },
-            { $skip: parseInt(pageNo) },
+            { $skip: parseInt(Limit) * parseInt(pageNo) },
             { $limit: parseInt(Limit) },
             {
                 $lookup: {
@@ -122,7 +122,7 @@ exports.categorylist = async (req, res, next) => {
         //         }
         //     }, pageNo, Limit, { "createdAt": -1 })
 
-        const obj = resPattern.successPattern(httpStatus.OK, {totalCount, result }, `success`);
+        const obj = resPattern.successPattern(httpStatus.OK, { totalCount, result }, `success`);
         return res.status(obj.code).json({
             ...obj,
         });

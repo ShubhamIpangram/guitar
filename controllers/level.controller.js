@@ -47,7 +47,7 @@ exports.levellist = async (req, res, next) => {
         }
 
 
-        const  totalCount = await query.count(levelColl, {})
+        const totalCount = await query.count(levelColl, {})
         const result = await levelColl.aggregate([
             {
                 $match: {
@@ -65,7 +65,7 @@ exports.levellist = async (req, res, next) => {
                     as: 'categoryType'
                 }
             },
-            { $skip: parseInt(pageNo) },
+            { $skip: parseInt(Limit) * parseInt(pageNo) },
             { $limit: parseInt(Limit) },
         ]).toArray();
 
@@ -79,7 +79,7 @@ exports.levellist = async (req, res, next) => {
         //     },
         //     {}, pageNo, Limit, { "createdAt": -1 })
 
-        const obj = resPattern.successPattern(httpStatus.OK, { totalCount,result }, `success`);
+        const obj = resPattern.successPattern(httpStatus.OK, { totalCount, result }, `success`);
         return res.status(obj.code).json({
             ...obj,
         });
