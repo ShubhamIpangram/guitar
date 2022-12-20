@@ -195,16 +195,27 @@ exports.lessonlist = async (req, res, next) => {
         if (searchText) {
             search = searchText
         }
-
-        const result = await query.findByPagination(lessonColl,
+        const result = await lessonColl.aggregate([
             {
-                lessonType: {
-                    $regex: ".*" + search + ".*",
-                    $options: "i",
+                $lookup: {
+                    from: 'lessonType',
+                    localField: 'lessonType',
+                    foreignField: '_id',
+                    as: 'lessonType'
                 }
             },
-            {}, pageNo, Limit, { "createdAt": -1 })
-
+            { $skip: parseInt(Limit) * parseInt(pageNo) },
+            { $limit: parseInt(Limit) },
+            {
+                $lookup: {
+                    from: 'level',
+                    localField: 'levelId',
+                    foreignField: '_id',
+                    as: 'levelId'
+                }
+            },
+            { $project: { levelId: { hideLevel: 0, categoryType: 0, createdAt: 0 } } },
+        ]).toArray();
         const obj = resPattern.successPattern(httpStatus.OK, { result }, `success`);
         return res.status(obj.code).json({
             ...obj,
@@ -237,7 +248,30 @@ exports.deleteLesson = async (req, res, next) => {
 exports.detailLesson = async (req, res, next) => {
     try {
         const id = ObjectId(req.params.id);
-        const result = await query.findOne(lessonColl, { _id: id });
+        const result = await lessonColl.aggregate([
+            {
+                $match: {
+                    _id: id
+                }
+            },
+            {
+                $lookup: {
+                    from: 'lessonType',
+                    localField: 'lessonType',
+                    foreignField: '_id',
+                    as: 'lessonType'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'level',
+                    localField: 'levelId',
+                    foreignField: '_id',
+                    as: 'levelId'
+                }
+            },
+            { $project: { levelId: { hideLevel: 0, categoryType: 0, createdAt: 0 } } },
+        ]).toArray();
         if (result) {
             const obj = resPattern.successPattern(httpStatus.OK, result, `success`);
             return res.status(obj.code).json({
@@ -256,6 +290,12 @@ exports.updateLesson = async (req, res, next) => {
     try {
         const id = ObjectId(req.params.id);
         const bodyData = req.body;
+        if (req.body.levelId) {
+            bodyData.levelId = ObjectId(req.body.levelId)
+        }
+        if (req.body.lessonType) {
+            bodyData.lessonType = ObjectId(req.body.lessonType)
+        }
         const result = await query.findOneAndUpdate(lessonColl,
             { _id: id },
             { $set: bodyData },
