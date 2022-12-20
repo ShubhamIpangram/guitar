@@ -24,28 +24,33 @@ exports.adminlogin = async (req, res, next) => {
     }
     const { password } = req.body;
     const reqData = { email: req.body.email };
-
     let user = await query.findOne(userColl, reqData);
-    if (!user || user.password == null) {
-      const message = `Incorrect email or password.`;
-      return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
-    }
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (isMatch) {
-      const token = encrypt(jwt.sign(
-        { _id: user._id, mobile_no: user.mobile_no },
-        //privateKey, { algorithm: 'RS256' }
-        process.env.JWT_SECRET
-      ));
-      delete user["password"];
-      let obj = resPattern.successPattern(
-        httpStatus.OK,
-        { user, token },
-        "success"
-      );
-      return res.status(obj.code).json(obj);
+    console.log(user)
+    if (user.roleType === "admin" || user.roleType === "instructor") {
+      if (!user || user.password == null) {
+        const message = `Incorrect email or password.`;
+        return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
+      }
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (isMatch) {
+        const token = encrypt(jwt.sign(
+          { _id: user._id, mobile_no: user.mobile_no },
+          //privateKey, { algorithm: 'RS256' }
+          process.env.JWT_SECRET
+        ));
+        delete user["password"];
+        let obj = resPattern.successPattern(
+          httpStatus.OK,
+          { user, token },
+          "success"
+        );
+        return res.status(obj.code).json(obj);
+      } else {
+        const message = `Incorrect email or password.`;
+        return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
+      }
     } else {
-      const message = `Incorrect email or password.`;
+      const message = `Only Admin and Instructor Allowed to Login`;
       return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
     }
   } catch (e) {

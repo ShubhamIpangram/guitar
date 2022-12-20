@@ -39,6 +39,8 @@ exports.signUp = async (req, res, next) => {
             const insertdata = await query.insert(userColl, user);
             if (insertdata.ops.length > 0) {
                 delete insertdata.ops[0]["password"];
+                delete insertdata.ops[0]["otp"];
+                delete insertdata.ops[0]["expireTime"];
                 const obj = resPattern.successPattern(
                     httpStatus.OK,
                     insertdata.ops[0],
@@ -81,6 +83,8 @@ exports.signIn = async (req, res, next) => {
                 process.env.JWT_SECRET
             ));
             delete user["password"];
+            delete user["otp"];
+            delete user["expireTime"];
             let obj = resPattern.successPattern(
                 httpStatus.OK,
                 { user, token },
@@ -199,12 +203,10 @@ exports.resetPassword = async (req, res, next) => {
 exports.verifyotp = async (req, res, next) => {
     try {
         const { error, isValidMsg } = await emailValidation(req.body);
-
         if (!isValidMsg) {
             const message = Object.values(error);
             return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
         }
-
         const { errors, isValid } = await resetPasswordValidation(req.body);
         if (!isValid) {
             const message = Object.values(errors);
