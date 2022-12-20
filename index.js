@@ -24,7 +24,8 @@ app.use(logger('dev'));
 app.use(cookieParser());
 var csrfProtection = csrf({ cookie: true });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public/uploads')));
+app.use("/", express.static("public"));
 app.use(session({
     secret: process.env.SECRET_EXPREESESSION,
     resave: true,

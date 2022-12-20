@@ -49,22 +49,42 @@ const decrypt = (ciphertext) => {
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null, "public/musicfiles");
+      cb(null, "public/uploads");
     },
     filename: (req, file, cb) => {
       //   const ext = file.mimetype.split("/")[1];
       console.log("exttt", file)
-      cb(null, file.originalname);
+      cb(null, file.originalname.split('.').join('-' + Date.now() + '.'))
     },
   }),
 
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.split("/")[1] === "wave") {
-      cb(null, true);
-    } else {
-      cb(new Error("Not a wav File!!"), false);
+  // fileFilter: (req, file, cb) => {
+  //   if (file.mimetype.split("/")[1] === "wave" || file.mimetype.split("/")[1] === "jpg" || file.mimetype.split("/")[1] === "webm") {
+  //     cb(null, true);
+  //   } else {
+  //     cb(new Error("Only png, jpg, gif and jpeg images and pdf mp4 , wav, mp3 , docx are allowed!"), false);
+  //   }
+  // }
+  fileFilter: function (req, file, callback) {
+    var ext = path.extname(file.originalname);
+    if (
+      ext !== ".wav" &&
+      ext !== ".jpg" &&
+      ext !== ".webm" &&
+      ext !== ".jpeg" &&
+      ext !== ".mp4" &&
+      ext !== ".pdf" &&
+      ext !== ".docx"
+    ) {
+      return callback(
+        "Only png, jpg, gif and jpeg images and pdf mp4 docx are allowed!"
+      );
     }
-  }
+    callback(null, true);
+  },
+  limits: {
+    fileSize: 1024 * 1024 * 500,
+  },
 })
 
 let sendEmail = async (data) => {

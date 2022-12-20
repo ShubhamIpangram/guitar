@@ -155,9 +155,7 @@ exports.forgotPassword = async (req, res, next) => {
         "info": "Your Otp is"
       }
 
-      await sendEmail(body).then((data) => {
-        console.log(data)
-      })
+      await sendEmail(body);
 
       //send response
       const message = `Email sent successfully.`;

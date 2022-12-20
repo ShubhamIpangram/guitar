@@ -33,22 +33,152 @@ exports.addLesson = async (req, res, next) => {
             const message = Object.values(errors);
             return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
         }
-        const lesson = req.body;
-        lesson.hideLesson = false;
-        lesson.levelId = ObjectId(req.body.levelId)
-        const insertdata = await query.insert(lessonColl, lesson);
-        if (insertdata.ops.length > 0) {
-            const obj = resPattern.successPattern(
-                httpStatus.OK,
-                insertdata.ops[0],
-                `success`
-            );
-            return res.status(obj.code).json({
-                ...obj,
-            });
-        } else {
-            const message = `Something went wrong, Please try again.`;
-            return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
+
+        const id = ObjectId(req.body.lessonType)
+        const LessonType = await query.findOne(lessonTypeColl, { _id: id });
+        console.log(LessonType)
+        if (LessonType.type === "Play with GuitarAlone") {
+            const lesson = req.body;
+            lesson.hideLesson = false;
+            lesson.levelId = ObjectId(req.body.levelId)
+            lesson.lessonType = ObjectId(req.body.lessonType)
+            if (req.files) {
+                console.log(req.files)
+                lesson.music = "uploads/" + req.files.music[0].filename
+            }
+            const insertdata = await query.insert(lessonColl, lesson);
+            if (insertdata.ops.length > 0) {
+                const obj = resPattern.successPattern(
+                    httpStatus.OK,
+                    insertdata.ops[0],
+                    `success`
+                );
+                return res.status(obj.code).json({
+                    ...obj,
+                });
+            } else {
+                const message = `Something went wrong, Please try again.`;
+                return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
+            }
+        }
+
+
+        if (LessonType.type === "Theory - Learning") {
+            const lesson = req.body;
+            lesson.hideLesson = false;
+            lesson.levelId = ObjectId(req.body.levelId)
+            lesson.lessonType = ObjectId(req.body.lessonType)
+            if (req.files) {
+                console.log(req.files)
+                lesson.uploadMusic = "uploads/" + req.files.uploadMusic[0].filename
+            }
+
+            if (req.files) {
+                console.log(req.files)
+                lesson.uploadVideo = "uploads/" + req.files.uploadVideo[0].filename
+            }
+
+            if (req.files) {
+                console.log(req.files)
+                lesson.uploadImage = "uploads/" + req.files.uploadImage[0].filename
+            }
+
+            const insertdata = await query.insert(lessonColl, lesson);
+            if (insertdata.ops.length > 0) {
+                const obj = resPattern.successPattern(
+                    httpStatus.OK,
+                    insertdata.ops[0],
+                    `success`
+                );
+                return res.status(obj.code).json({
+                    ...obj,
+                });
+            } else {
+                const message = `Something went wrong, Please try again.`;
+                return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
+            }
+        }
+
+        if (LessonType.type === "General MCQ") {
+            const lesson = req.body;
+            lesson.hideLesson = false;
+            lesson.levelId = ObjectId(req.body.levelId)
+            lesson.lessonType = ObjectId(req.body.lessonType)
+
+            const insertdata = await query.insert(lessonColl, lesson);
+            if (insertdata.ops.length > 0) {
+                const obj = resPattern.successPattern(
+                    httpStatus.OK,
+                    insertdata.ops[0],
+                    `success`
+                );
+                return res.status(obj.code).json({
+                    ...obj,
+                });
+            } else {
+                const message = `Something went wrong, Please try again.`;
+                return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
+            }
+        }
+
+
+        if (LessonType.type === "General - Music Composition") {
+            const lesson = req.body;
+            lesson.hideLesson = false;
+            lesson.levelId = ObjectId(req.body.levelId)
+            lesson.lessonType = ObjectId(req.body.lessonType)
+
+
+            if (req.files) {
+                console.log(req.files)
+                lesson.uploadQuestion = "uploads/" + req.files.uploadQuestion[0].filename
+            }
+
+            if (req.files) {
+                console.log(req.files)
+                lesson.answerImage1 = "uploads/" + req.files.answerImage1[0].filename
+            }
+
+            if (req.files) {
+                console.log(req.files)
+                lesson.answerImage2 = "uploads/" + req.files.answerImage2[0].filename
+            }
+
+
+            if (req.files) {
+                console.log(req.files)
+                lesson.answerImage3 = "uploads/" + req.files.answerImage3[0].filename
+            }
+
+            if (req.files) {
+                console.log(req.files)
+                lesson.answerImage4 = "uploads/" + req.files.answerImage4[0].filename
+            }
+
+            if (req.files) {
+                console.log(req.files)
+                lesson.answerImage5 = "uploads/" + req.files.answerImage5[0].filename
+            }
+
+            if (req.files) {
+                console.log(req.files)
+                lesson.answerImage6 = "uploads/" + req.files.answerImage6[0].filename
+            }
+
+            const insertdata = await query.insert(lessonColl, lesson);
+            if (insertdata.ops.length > 0) {
+                const obj = resPattern.successPattern(
+                    httpStatus.OK,
+                    insertdata.ops[0],
+                    `success`
+                );
+                return res.status(obj.code).json({
+                    ...obj,
+                });
+            } else {
+                const message = `Something went wrong, Please try again.`;
+                return next(new APIError(`${message}`, httpStatus.BAD_REQUEST, true));
+            }
         }
     } catch (e) {
         console.log("e..", e);
