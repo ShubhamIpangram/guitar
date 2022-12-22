@@ -87,32 +87,30 @@ const upload = multer({
   },
 })
 
-let sendEmail = async (data) => {
-  console.log("calling");
-  let transporter = nodeMailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true, // true for 465, false for other ports
+let sendEmail = async (toEmail, subject, bodyHtml, attachments) => {
+  const transporter = nodeMailer.createTransport({
+    service: process.env.EMAIL_SERVICE,
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  let mailOptions = {
+    to: toEmail,
+    subject: subject,
+    html: `${bodyHtml}`,
+    attachments: attachments,
+  };
+
+  await transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log("Email sent: " + info.response);
     }
   });
-  let info = await transporter.sendMail({
-    from: 'noreply@guitar.com',
-    to: data.email,
-    subject: data.subject,
-    html: mailTemp(data.info, data.otp)
-  });
-  console.log("Message sent: %s", info.messageId);
-}
-let mailTemp = (info, otp) => {
-  let temp = `
-    <div>${info}</div>
-    <div>OTP: ${otp}</div>
-    `
-  return temp;
-}
+};
 
 const resetPasswordValidation = (data) => {
   var errors = {}

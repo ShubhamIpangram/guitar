@@ -129,14 +129,11 @@ exports.forgotPassword = async (req, res, next) => {
                 },
             });
 
-            let body = {
-                "email": req.body.email,
-                "subject": "OTP For Forgot Password",
-                "otp": otp,
-                "info": "Your Otp is"
-            }
+            const toEmail = req.body.email;
+            const emailBody = `<div>OTP: ${otp}</div>`;
+            const title = `OTP For Forgot Password`;
+            await sendEmail(toEmail, title, emailBody);
 
-            await sendEmail(body);
             //send response
             const message = `Email sent successfully.`;
             const obj = resPattern.successMessge(httpStatus.OK, message);

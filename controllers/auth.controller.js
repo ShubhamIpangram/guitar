@@ -149,18 +149,10 @@ exports.forgotPassword = async (req, res, next) => {
           expireTime: moment().add(10, "minutes").format("YYYY-MM-DDThh:mm:ss"),
         },
       });
-
-      // const toEmail = req.body.email;
-      // const emailBody = `<div>OTP: ${otp}</div>`;
-      // const title = `OTP For Forgot Password`;
-      let body = {
-        "email": req.body.email,
-        "subject": "OTP For Forgot Password",
-        "otp": otp,
-        "info": "Your Otp is"
-      }
-
-      await sendEmail(body);
+      const toEmail = req.body.email;
+      const emailBody = `<div>OTP: ${otp}</div>`;
+      const title = `OTP For Forgot Password`;
+      await sendEmail(toEmail, title, emailBody);
 
       //send response
       const message = `Email sent successfully.`;

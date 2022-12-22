@@ -34,6 +34,7 @@ exports.fileConvert = async (req, res, next) => {
     ];
     const SampleRate = 44100
     const detectPitch = new Pitchfinder.YIN({ sampleRate: SampleRate });
+    // deepcode ignore PT: <please specify a reason of ignoring this>
     const buffer = fs.readFileSync(req.file.path);
     const decoded = WavDecoder.decode.sync(buffer);
     const float32Array = decoded.channelData[0];
@@ -47,7 +48,6 @@ exports.fileConvert = async (req, res, next) => {
         quantization: 4,
       }
     );
-
     var arr2 = moreAccurateFrequencies.filter(element => element < 910 && element > 0).map((frequency) => (
       {
         name: noteStrings[(Math.round(12 * (Math.log(frequency / middleA) / Math.log(2))) + semitone) % 12],
@@ -158,6 +158,7 @@ exports.updateSong = async (req, res, next) => {
     ];
     const SampleRate = 44100
     const detectPitch = new Pitchfinder.YIN({ sampleRate: SampleRate });
+    // deepcode ignore PT: <please specify a reason of ignoring this>
     const buffer = fs.readFileSync(req.file.path);
     const decoded = WavDecoder.decode.sync(buffer);
     const float32Array = decoded.channelData[0];

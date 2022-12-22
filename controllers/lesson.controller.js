@@ -195,7 +195,17 @@ exports.lessonlist = async (req, res, next) => {
         if (searchText) {
             search = searchText
         }
+        const totalCount = await query.count(lessonColl, {})
         const result = await lessonColl.aggregate([
+
+            {
+                $match: {
+                    title: {
+                        $regex: ".*" + search + ".*",
+                        $options: "i",
+                    }
+                }
+            },
             {
                 $lookup: {
                     from: 'lessonType',
@@ -216,7 +226,7 @@ exports.lessonlist = async (req, res, next) => {
             },
             { $project: { levelId: { hideLevel: 0, categoryType: 0, createdAt: 0 } } },
         ]).toArray();
-        const obj = resPattern.successPattern(httpStatus.OK, { result }, `success`);
+        const obj = resPattern.successPattern(httpStatus.OK, { totalCount, result }, `success`);
         return res.status(obj.code).json({
             ...obj,
         });
