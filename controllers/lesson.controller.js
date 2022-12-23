@@ -338,3 +338,92 @@ exports.hideLesson = async (req, res, next) => {
         return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true));
     }
 }
+
+
+exports.lessonFilter = async (req, res, next) => {
+    try {
+        const { pageNo, limit, searchText, filter } = req.query;
+        const Limit = parseInt(limit)
+
+        let search = "";
+        let lessonFilter = ""
+
+        if (searchText) {
+            search = searchText
+        }
+
+        if (filter) {
+            lessonFilter = filter
+        }
+        const totalCount = await query.count(lessonColl, {})
+        const result = lessonFilter == "" ?
+            await lessonColl.aggregate([
+
+                {
+                    $match: {
+                        title: {
+                            $regex: ".*" + search + ".*",
+                            $options: "i",
+                        }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'lessonType',
+                        localField: 'lessonType',
+                        foreignField: '_id',
+                        as: 'lessonType'
+                    }
+                },
+                { $skip: parseInt(Limit) * parseInt(pageNo) },
+                { $limit: parseInt(Limit) },
+                {
+                    $lookup: {
+                        from: 'level',
+                        localField: 'levelId',
+                        foreignField: '_id',
+                        as: 'levelId'
+                    }
+                },
+                { $project: { levelId: { hideLevel: 0, categoryType: 0, createdAt: 0 } } },
+            ]).toArray() : await lessonColl.aggregate([
+
+                {
+                    $match: {
+                        lessonType: ObjectId(lessonFilter),
+                        title: {
+                            $regex: ".*" + search + ".*",
+                            $options: "i",
+                        }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'lessonType',
+                        localField: 'lessonType',
+                        foreignField: '_id',
+                        as: 'lessonType'
+                    }
+                },
+                { $skip: parseInt(Limit) * parseInt(pageNo) },
+                { $limit: parseInt(Limit) },
+                {
+                    $lookup: {
+                        from: 'level',
+                        localField: 'levelId',
+                        foreignField: '_id',
+                        as: 'levelId'
+                    }
+                },
+                { $project: { levelId: { hideLevel: 0, categoryType: 0, createdAt: 0 } } },
+            ]).toArray();
+
+        const obj = resPattern.successPattern(httpStatus.OK, {totalCount, result }, `success`);
+        return res.status(obj.code).json({
+            ...obj,
+        });
+    } catch (e) {
+        console.log('error---', e)
+        return next(new APIError(`${e.message}`, httpStatus.BAD_REQUEST, true))
+    }
+}

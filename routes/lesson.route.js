@@ -23,5 +23,6 @@ router.route('/deleteLesson/:id').delete(lessonCtrl.deleteLesson);
 router.route('/lessonDetails/:id').get(lessonCtrl.detailLesson);
 router.route('/update-lesson/:id').put(lessonCtrl.updateLesson);
 router.route('/hide-lesson/:id').put(lessonCtrl.hideLesson);
+router.route('/lesson-filter').get(lessonCtrl.lessonFilter);
 
 module.exports = router;
