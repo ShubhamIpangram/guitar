@@ -233,23 +233,64 @@ exports.filterCategory = async (req, res, next) => {
         }
 
         const result = categoryFilter == "" ?
-            await query.findByPagination(categoryColl,
+            await categoryColl.aggregate([
                 {
-                    title: {
-                        $regex: ".*" + search + ".*",
-                        $options: "i",
-                    }
-                },
-                {}, pageNo, Limit, { "createdAt": -1 }) : await query.findByPagination(categoryColl,
-                    {
-                        categoryType: categoryFilter,
+                    $match: {
                         title: {
                             $regex: ".*" + search + ".*",
                             $options: "i",
                         }
-                    },
-                    {}, pageNo, Limit, { "createdAt": -1 })
-
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'categoryType',
+                        localField: 'categoryType',
+                        foreignField: '_id',
+                        as: 'categoryType'
+                    }
+                },
+                { $skip: parseInt(Limit) * parseInt(pageNo) },
+                { $limit: parseInt(Limit) },
+                {
+                    $lookup: {
+                        from: 'level',
+                        localField: 'level',
+                        foreignField: '_id',
+                        as: 'level'
+                    }
+                },
+                { $project: { level: { hideLevel: 0, categoryId: 0, createdAt: 0 } } },
+            ]).toArray() : await categoryColl.aggregate([
+                {
+                    $match: {
+                        categoryType: ObjectId(categoryFilter),
+                        title: {
+                            $regex: ".*" + search + ".*",
+                            $options: "i",
+                        }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'categoryType',
+                        localField: 'categoryType',
+                        foreignField: '_id',
+                        as: 'categoryType'
+                    }
+                },
+                { $skip: parseInt(Limit) * parseInt(pageNo) },
+                { $limit: parseInt(Limit) },
+                {
+                    $lookup: {
+                        from: 'level',
+                        localField: 'level',
+                        foreignField: '_id',
+                        as: 'level'
+                    }
+                },
+                { $project: { level: { hideLevel: 0, categoryId: 0, createdAt: 0 } } },
+            ]).toArray();
         const obj = resPattern.successPattern(httpStatus.OK, { result }, `success`);
         return res.status(obj.code).json({
             ...obj,
